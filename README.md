@@ -116,7 +116,12 @@ again — `PR#2` / `LIST` / `PR#0` then works from the moment the machine comes 
 
 ### Run once after each boot
 
-`PRSETUP` on the test disk, or these lines in any program:
+**Booting `GLPTEST` does this for you** — its `STARTUP` configures the card before the menu
+appears, so `PR#2` / `LIST` / `PR#0` works the moment you reach the `]` prompt. Menu
+option 8 re-sends it if anything resets the card.
+
+For any other disk, put these lines in that disk's `STARTUP` (ProDOS `BASIC.SYSTEM` runs a
+program of that name automatically at boot) or run them from any program:
 
 ```basic
 10  D$ = CHR$(4) : C$ = CHR$(9)
