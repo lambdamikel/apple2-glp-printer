@@ -26,6 +26,25 @@ Plus a trap that is in no manual: **the two DIP switch blocks are mounted in opp
 orientations** (§ 1.5). Our copy of the manual carries a previous owner's handwritten
 correction to the block-numbering figure, so they hit it too.
 
+## The GLP family differs by ROM, not just badge
+
+The same Brother-built chassis was sold under several names, and the commonly cited online
+source treats them as one machine with features arriving at the GLP II. That is wrong in
+both directions:
+
+| Model | NLQ | RS-232 |
+|-------|:---:|:------:|
+| Brother M1009 | no | no |
+| Schneider NLQ401 | yes | no |
+| **Centronics GLP 3101** | **yes** (SW2-4) | **yes** |
+| Commodore MPS-803, Yamaha PN-101 | — | — |
+
+The 3101 row is from the manual and the hardware in this repo: SW2-4 selects NLQ, and the
+serial port is fitted. The M1009 and NLQ401 rows are first-hand from an owner of both
+(M1009 bought new in 1985; it has neither NLQ nor serial, and the NLQ401 has NLQ but no
+serial). So the differences are firmware, not options — which is also why the NLQ401 is not
+a safe proxy when you are trying to work out how a 3101 behaves.
+
 ## Contents
 
 | | |
