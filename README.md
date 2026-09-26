@@ -149,6 +149,15 @@ fills and the handshake does the real work — at 1200 the timing was forgiving 
 mistakes. If characters go missing, raise the CR pause to `3C`, or drop back to `8B` (1200)
 with printer SW1-3/4/5 = OFF/OFF/ON.
 
+### Printer state can get stuck
+
+The setup also sends `ESC @` (initialise) and `ESC 2` (1/6" line spacing) after configuring
+the card. Not decoration: a stream of garbage will sooner or later contain a live escape
+sequence, and `ESC 3 n` or `ESC A n` sets a custom line pitch that then persists through
+every later attempt. Symptom is correct text printed with almost no gap between lines.
+Anything else that misbehaves oddly after a garbled run is worth a power cycle before you
+go looking for a real fault.
+
 ### The frame
 
 ```
