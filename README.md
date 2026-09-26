@@ -9,7 +9,7 @@ Working, with a bootable ProDOS test/diagnostic disk.
 
 The GLP 3101's user manual (Centronics `37403101-9A00`, Rev A, October 1984) is **not
 online anywhere**. The only catalogued copy is at Stanford, unscanned — so
-[`docs/manual/`](docs/manual/) has photographs of the pages these tables come from. Widely repeated
+[`docs/`](docs/README.md) has photographs of the pages these tables come from. Widely repeated
 information about this printer is wrong: the commonly cited source claims the 3101 was
 parallel-only and that NLQ was a GLP II feature. Both are false — this 3101 has serial and
 NLQ. Its DIP switch tables here are transcribed from the physical manual.
@@ -54,7 +54,7 @@ a safe proxy when you are trying to work out how a 3101 behaves.
 | `disk/GLPTEST.po` | same volume, ProDOS order |
 | `src/*.bas` | the nine Applesoft programs on the disk |
 | `tools/` | ProDOS filesystem writer and Applesoft tokenizer, written from scratch |
-| [`docs/`](docs/) | photographs of the manual and the hardware — the switch tables here can be checked against them |
+| [`docs/`](docs/README.md) | photographs of the manual and the hardware — the switch tables here can be checked against them |
 
 `PRSETUP` is the one for daily use: run it once after boot, then `PR#2` / `LIST` / `PR#0`.
 The others are diagnostics — loopback, baud and framing sweeps, a receive-line watcher, and
