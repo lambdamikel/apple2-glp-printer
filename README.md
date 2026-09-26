@@ -91,7 +91,7 @@ need software.
 **Linefeed must come from exactly one side.** Both → double spacing; neither → every line
 overprinted. Here the printer does it (SW2-7 ON), so the card must not (`L D`).
 
-### `PRSETUP` is mandatory, not a convenience
+### `PRSETUP` is mandatory, not a convenience — but it can be automatic
 
 There is no switch-only configuration that works. The SSC's DIP switches can only select
 **8 data bits**, and 7-bit mode is the only thing that strips the Apple's high bit. So
@@ -101,8 +101,18 @@ without `PRSETUP`:
 - **carriage return goes out as `$8D`, not `$0D`** — so the printer never sees a CR at all
 
 That last point matters: printer SW2-7 cannot rescue it, because there is no carriage
-return for it to append a linefeed to. Setting SW2-7 makes no observable difference until
-`PRSETUP` has run. Run it once after every boot.
+return for it to append a linefeed to. SW2-7 makes no observable difference until
+`PRSETUP` has run.
+
+Verified against the firmware listing in the SSC manual: the single output path for every
+mode — Printer, Communications and both Serial Interface Card emulations — is `ACIAOUT`,
+which stores the character to the ACIA unmasked. The only `AND #$7F` masks in the ROM are on
+the Pascal *read* path, ESC detection and keyboard command matching. No mode strips bit 7
+on output, so no combination of switches can substitute for `1D`.
+
+**Make it free:** ProDOS's `BASIC.SYSTEM` runs a program named `STARTUP` at boot. Put the
+`PRSETUP` lines in the `STARTUP` of whatever disk you boot and you never think about it
+again — `PR#2` / `LIST` / `PR#0` then works from the moment the machine comes up.
 
 ### Run once after each boot
 
@@ -149,8 +159,8 @@ GLP wants:  START | b0 b1 b2 b3 b4 b5 b6 | PARITY     | STOP     10 bits
 2. **Parity.** The GLP checks odd parity **even in 8-bit mode** and silently discards
    failures. Sending no parity bit, only characters with an even number of 1 bits survived:
    `LINE ONE   ABCDE 12345` printed as `NNABD35`.
-3. **Linefeed.** Originally SW2-7 = OFF, so nobody generated one. Now SW2-7 = ON and the
-   printer does it, so the card must not (`L D`).
+3. **Linefeed.** Printer SW2-7 is ON, so the printer supplies it and the card must not
+   (`L D`). Sending `L E` as well double-spaces everything.
 4. **Flow control.** Without it the printer loses whatever arrives during the ~80 ms CR/LF
    mechanical cycle — about ten characters at 1200 baud. The firmware's handshake plus a
    250 ms CR pause covers it.
@@ -286,13 +296,12 @@ Eight switches. Leave these at factory settings; only 2-7 interacts with the App
 | 2-4 | NLQ | Valid | Invalid | OFF | taste |
 | 2-5 | Skip perforation (1 inch) | Valid | Invalid | OFF | taste |
 | 2-6 | Buffer Full Print | With LF | Without LF | ON | ON |
-| 2-7 | CR (auto LF enable/disable) | Print with LF | Print without LF | OFF | **OFF** |
+| 2-7 | CR (auto LF enable/disable) | Print with LF | Print without LF | OFF | **ON** |
 | 2-8 | /SLCT IN | Fixed | Not fixed | ON | ON |
 
-**2-7 is the line-spacing switch**, and on this unit it is **OFF** — the printer prints
-without LF. So **the SSC must generate the linefeed** (`L E`, or SSC SW2-5 = ON). Exactly
-one of the two must do it: both → double spacing, neither → everything overprinted on one
-line. See § 1.5.
+**2-7 is the line-spacing switch**, and on this unit it is **ON** — the printer supplies
+the linefeed itself. So **the SSC must not** (`L D`, and SSC SW2-5 = OFF). Exactly one of
+the two must do it: both → double spacing, neither → everything overprinted on one line.
 
 Note 2-4: **this 3101 does have NLQ**, and it is switched on here.
 
@@ -328,9 +337,11 @@ Two independent confirmations:
 **SW1** (1→8): `OFF ON OFF OFF ON ON OFF OFF`
 — serial, 1200 baud, 8 data bits, XON/XOFF transmit on, busy polarity normal. Correct.
 
-**SW2** (1→8): `ON OFF ON OFF OFF ON OFF ON` — factory throughout.
-**2-7 = OFF, so the printer adds no linefeed and the SSC must supply it** (`L E`, or
-SSC SW2-5 = ON; programs bypassing the firmware must send LF (10) after CR (13)).
+**SW2:** **2-7 = ON, so the printer supplies the linefeed** and the SSC must not
+(`L D`, SSC SW2-5 = OFF; programs bypassing the firmware send CR alone, no LF).
+
+Reading the rest of SW2 reliably needs the orientation note above; 2-7 is the only one that
+affects the Apple.
 
 ### 1.6 Changes needed
 
@@ -400,7 +411,7 @@ For 9600 baud: SW1-1..4 = **OFF OFF OFF ON**.
 | 2 | OFF | no CR delay |
 | 3 | OFF | 80 columns, video off |
 | 4 | ON | " |
-| 5 | **ON** | SSC adds LF after CR (printer SW2-7 = OFF) |
+| 5 | **OFF** | printer SW2-7 = ON supplies the LF |
 | 6 | OFF | no interrupts |
 | 7 | OFF | normal |
 
