@@ -89,3 +89,61 @@ def read_file(img, e):
                 break
         return bytes(out[:e.eof])
     raise ValueError('storage type %d' % e.stype)
+
+
+def free_blocks(img):
+    """List of free block numbers per the volume bitmap in block 6."""
+    bm = img.rb(6)
+    return [b for b in range(NBLOCKS) if bm[b >> 3] & (0x80 >> (b & 7))]
+
+
+def replace_file(img, name, data):
+    """Overwrite an existing file's contents, growing seedling->sapling if needed.
+
+    Reuses the file's current blocks where possible and takes any extra from the
+    volume bitmap. Returns (storage_type, blocks_used).
+    """
+    import struct
+    ent = [e for e in dir_entries(img) if e.name == name]
+    if not ent:
+        raise KeyError(name)
+    e = ent[0]
+    bm = bytearray(img.rb(6))
+    free = [b for b in range(NBLOCKS) if bm[b >> 3] & (0x80 >> (b & 7))]
+
+    def take():
+        b = free.pop(0)
+        bm[b >> 3] &= ~(0x80 >> (b & 7))
+        return b
+
+    own = [e.key] if e.stype == 1 else None      # blocks we may reuse
+    if e.stype != 1:
+        raise ValueError('only seedling replacement implemented')
+
+    if len(data) <= 512:
+        img.wb(e.key, data.ljust(512, b'\0'))
+        st, key, used = 1, e.key, 1
+    else:
+        chunks = [data[i:i + 512] for i in range(0, len(data), 512)]
+        if len(chunks) > 256:
+            raise ValueError('needs tree storage')
+        key = e.key                               # reuse old block as the index
+        idx = bytearray(512)
+        for i, c in enumerate(chunks):
+            b = take()
+            img.wb(b, c.ljust(512, b'\0'))
+            idx[i], idx[256 + i] = b & 0xFF, b >> 8
+        img.wb(key, bytes(idx))
+        st, used = 2, len(chunks) + 1
+
+    blk = bytearray(img.rb(e.blk))
+    off = 4 + e.idx * 39
+    blk[off] = (st << 4) | (blk[off] & 0x0F)
+    struct.pack_into('<H', blk, off + 17, key)
+    struct.pack_into('<H', blk, off + 19, used)
+    blk[off+21], blk[off+22], blk[off+23] = (len(data) & 0xFF, (len(data) >> 8) & 0xFF,
+                                             (len(data) >> 16) & 0xFF)
+    blk[off+33:off+37] = pdate()
+    img.wb(e.blk, bytes(blk))
+    img.wb(6, bytes(bm))
+    return st, used

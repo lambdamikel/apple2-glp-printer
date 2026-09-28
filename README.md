@@ -52,8 +52,10 @@ a safe proxy when you are trying to work out how a 3101 behaves.
 | `README.md` | the whole thing — start at **WORKING CONFIGURATION** |
 | `disk/GLPTEST.dsk` | bootable ProDOS test disk, DOS sector order |
 | `disk/GLPTEST.po` | same volume, ProDOS order |
+| `disk/FreeWriter-GLP.dsk` | FreeWriter (freeware) patched to configure the card at boot |
 | `src/*.bas` | the nine Applesoft programs on the disk |
 | `tools/` | ProDOS filesystem writer and Applesoft tokenizer, written from scratch |
+| [`docs/software.md`](docs/software.md) | using real software — what works, what cannot, and how to patch a disk |
 | [`docs/`](docs/README.md) | photographs of the manual and the hardware — the switch tables here can be checked against them |
 
 `PRSETUP` is the one for daily use: run it once after boot, then `PR#2` / `LIST` / `PR#0`.
